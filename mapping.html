@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive User Story Map</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
+        .epic { width: 200px; background: #f0f0f0; padding: 10px; border-radius: 8px; min-height: 150px; }
+        .epic h3 { margin: 0; padding: 5px; background: #ddd; cursor: grab; }
+        .story { margin: 5px; padding: 8px; background: white; border: 1px solid #ccc; cursor: grab; }
+        .correct { background: lightgreen; }
+        .wrong { background: lightcoral; }
+    </style>
+</head>
+<body>
+
+    <h2>Setze die User Story Map richtig zusammen!</h2>
+    <p>Sortiere die Epics (horizontal) und die User Stories (vertikal) mit Drag & Drop.</p>
+    
+    <div class="container" id="epic-container">
+        <div class="epic" id="epic1" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h3 draggable="true" ondragstart="drag(event)" id="e1">📆 Kalender anschauen</h3>
+            <div class="story" draggable="true" ondragstart="drag(event)" id="s2">Tagesübersicht anschauen</div>
+            <div class="story" draggable="true" ondragstart="drag(event)" id="s1">Wochenübersicht anschauen</div>
+        </div>
+        <div class="epic" id="epic2" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h3 draggable="true" ondragstart="drag(event)" id="e2">📌 Termin erstellen</h3>
+            <div class="story" draggable="true" ondragstart="drag(event)" id="s4">Termin als HTML erstellen</div>
+            <div class="story" draggable="true" ondragstart="drag(event)" id="s3">Termin erstellen</div>
+        </div>
+    </div>
+
+    <button onclick="checkOrder()">✅ Prüfen</button>
+    
+    <script>
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            let data = event.dataTransfer.getData("text");
+            let draggedElement = document.getElementById(data);
+            let target = event.target.closest(".epic, h3, .story");
+
+            if (target && target.parentElement.classList.contains("epic")) {
+                target.parentElement.appendChild(draggedElement);
+            } else if (target.classList.contains("epic")) {
+                target.appendChild(draggedElement);
+            }
+        }
+
+        function checkOrder() {
+            let epicContainer = document.getElementById("epic-container").children;
+            let correctEpicOrder = ["epic1", "epic2"];
+            let correctStoryOrder = {
+                "epic1": ["s1", "s2"], // Epic 1: A oben, B unten
+                "epic2": ["s3", "s4"]  // Epic 2: C oben, D unten
+            };
+
+            let isCorrect = true;
+
+            // Prüfe die Epics (horizontal)
+            let currentEpicOrder = [...epicContainer].map(epic => epic.id);
+            if (JSON.stringify(currentEpicOrder) !== JSON.stringify(correctEpicOrder)) {
+                isCorrect = false;
+            }
+
+            // Prüfe die User Stories (vertikal)
+            for (let epic of epicContainer) {
+                let stories = [...epic.querySelectorAll(".story")].map(el => el.id);
+                if (JSON.stringify(stories) !== JSON.stringify(correctStoryOrder[epic.id])) {
+                    isCorrect = false;
+                }
+            }
+
+            // Farbe ändern und Ergebnis ausgeben
+            document.querySelectorAll(".epic, .story").forEach(el => el.classList.remove("correct", "wrong"));
+            document.querySelectorAll(".epic h3").forEach(el => el.classList.add(isCorrect ? "correct" : "wrong"));
+            document.querySelectorAll(".story").forEach(el => el.classList.add(isCorrect ? "correct" : "wrong"));
+
+            alert(isCorrect ? "🎉 Richtig!" : "❌ Falsche Reihenfolge, versuche es nochmal.");
+        }
+    </script>
+
+</body>
+</html>
